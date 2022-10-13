@@ -26,8 +26,9 @@ public class sqlSelect implements IQuery {
             return result;
         }
 
-        String[] line =  new String[colIndexes.length];
+
         for (int index : indexes) {
+            String[] line =  new String[colIndexes.length];
             String[] row = data.get(index);
             for (int j = 0; j < colIndexes.length; j++) {
                 line[j] = row[colIndexes[j]];
