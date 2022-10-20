@@ -11,9 +11,13 @@ These instructions will get you a copy of the project up and running on your loc
 Under the [example](https://github.com/yuenci/sqlParser/tree/master/src/example) folder, there are test cases of [Insert](https://github.com/yuenci/sqlParser/blob/master/src/example/demoInsert.java), [Select](https://github.com/yuenci/sqlParser/blob/master/src/example/demoSelect.java), [Update](https://github.com/yuenci/sqlParser/blob/master/src/example/demoUpdate.java), [Delete](https://github.com/yuenci/sqlParser/blob/master/src/example/demoDelete.java), and you can directly run the main function test.\
 
 ## Demo
+### Insert
 ![Insert](https://github.com/yuenci/sqlParser/blob/master/src/example/Insert.gif)
+### Select
 ![Select](https://github.com/yuenci/sqlParser/blob/master/src/example/Select.gif)
+### Update
 ![Update](https://github.com/yuenci/sqlParser/blob/master/src/example/Update.gif)
+### Delete
 ![Delete](https://github.com/yuenci/sqlParser/blob/master/src/example/Delete.gif)
 
 # Features
