@@ -13,12 +13,12 @@ public class demoInsert {
         String sqlInsert5 = "insert into testTable (age, address) values (70, 'ChinaIn4'), (80, 'ChinaIn5')";
 
         SQL.excute(sqlInsert1);
-        System.out.println("done");
-        System.out.println("===================================");
-        SQL.excute(sqlInsert2);
-        System.out.println("===================================");
-        SQL.excute(sqlInsert3);
-        System.out.println("===================================");
-        SQL.excute(sqlInsert5);
+//        System.out.println("done");
+//        System.out.println("===================================");
+//        SQL.excute(sqlInsert2);
+//        System.out.println("===================================");
+//        SQL.excute(sqlInsert3);
+//        System.out.println("===================================");
+//        SQL.excute(sqlInsert5);
     }
 }
