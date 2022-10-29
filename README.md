@@ -60,8 +60,6 @@ Please read [CONTRIBUTING.md](https://gist.github.com) for details on our code o
 ## Authors
 [![Yuenci](https://github.com/yuenci.png?size=60)](https://github.com/yuenci)
 
-* **[Yuenci](https://github.com/yuenci)**
-
 ## License
 
 This project is licensed under the MIT License 
