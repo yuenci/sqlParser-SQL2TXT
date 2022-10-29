@@ -57,7 +57,8 @@ Coming Soon!
 Please read [CONTRIBUTING.md](https://gist.github.com) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
-[![Yuenci](https://github.com/yuenci.png?size=60)](https://github.com/yuenci)
+<img src="https://github.com/yuenci/Laptop-Repair-Services-Management-System/blob/master/image/avatar-innis.png" alt="profile image" width="60px">
+
 
 ## License
 
