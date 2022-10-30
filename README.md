@@ -7,7 +7,7 @@ This project is an implementation of operating txt with SQL, which is equivalent
 Add [sqlParser.jar](https://github.com/yuenci/sqlParser/blob/master/sqlParser.jar) package to module dependencies of your project.
 ## Running the tests
 
-Under the [example](https://github.com/yuenci/sqlParser/tree/master/src/example) folder, there are test cases of [Insert](https://github.com/yuenci/sqlParser/blob/master/src/example/demoInsert.java), [Select](https://github.com/yuenci/sqlParser/blob/master/src/example/demoSelect.java), [Update](https://github.com/yuenci/sqlParser/blob/master/src/example/demoUpdate.java), [Delete](https://github.com/yuenci/sqlParser/blob/master/src/example/demoDelete.java), and you can directly run the main function test.\
+Under the [example](https://github.com/yuenci/sqlParser/tree/master/src/example) folder, there are test cases of [Insert](https://github.com/yuenci/sqlParser/blob/master/src/example/demoInsert.java), [Select](https://github.com/yuenci/sqlParser/blob/master/src/example/demoSelect.java), [Update](https://github.com/yuenci/sqlParser/blob/master/src/example/demoUpdate.java), [Delete](https://github.com/yuenci/sqlParser/blob/master/src/example/demoDelete.java), and you can directly run the main function test.
 
 ## Demo
 ### Insert
