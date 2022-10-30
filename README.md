@@ -45,6 +45,8 @@ Example: `delete from testtable where address =' China' or (name =' inners3' and
 # Planning
 
 * Order
+* Group
+* Join
 
 Coming Soon!
 
