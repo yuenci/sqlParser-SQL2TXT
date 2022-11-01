@@ -42,13 +42,14 @@ Example: `delete from testtable where address =' China' or (name =' inners3' and
 * Select, Update, Delete must have a Where clause.
 * String content must be wrapped in single quotation marks.
 
-# Road Mao
+# Roadmap
 
--[ ] Date, DateTime dataType
--[ ] Max,Min
--[ ] Order
--[ ] Group
--[ ] Join
+
+- [ ] Date, DateTime dataType
+- [ ] Max,Min
+- [ ] Order
+- [ ] Group
+- [ ] Join
 
 Coming Soon!
 
