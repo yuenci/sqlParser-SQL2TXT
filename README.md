@@ -18,6 +18,10 @@ Under the [example](https://github.com/yuenci/sqlParser/tree/master/src/example)
 ![Update](https://github.com/yuenci/sqlParser/blob/master/src/example/Update.gif)
 ### Delete
 ![Delete](https://github.com/yuenci/sqlParser/blob/master/src/example/Delete.gif)
+### Select functions: max(), min(). count(), avg(), sum()
+![functuons](https://github.com/yuenci/sqlParser-SQL2TXT/blob/master/src/example/function.gif)
+### Order(ASC, DESC)
+![Order](https://github.com/yuenci/sqlParser-SQL2TXT/blob/master/src/example/order.gif)
 
 # Features
 
@@ -43,6 +47,7 @@ select min(age) from datetime where address = 'China'
 select count(age) from datetime where address = 'China'
 select avg(age) from datetime where address = 'China'
 select sum(age) from datetime where address = 'China'
+select distinct(age) from datetime where address = 'China'
 ```
 - Support the select function of order by
 ```sql
