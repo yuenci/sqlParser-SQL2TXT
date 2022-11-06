@@ -20,6 +20,8 @@ import net.sf.jsqlparser.util.TablesNamesFinder;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Parser {
     // TODO: get insert col names and values ✅
@@ -106,6 +108,14 @@ public class Parser {
         if(sqlColsName != null){
             for (String colName : sqlColsName) {
                 if (!Arrays.asList(tableHeadName).contains(colName)) {
+                    if(isMaxMinCount(colName)){
+                        if(!Arrays.asList(tableHeadName).contains(getArgFromMaxMinCount(colName))){
+                            System.out.println("\"" + colName + "\"" + " does not exist");
+                            return false;
+                        }else{
+                            continue;
+                        }
+                    }
                     System.out.println("column " + "\"" + colName + "\"" + " does not exist");
                     return false;
                 }
@@ -168,7 +178,7 @@ public class Parser {
             if(i % 3 == 0){
                 String colName = whereClauseConditions[i];
                 String colValue = whereClauseConditions[i + 2];
-                String colDataType = strOrNum(colValue);
+                String colDataType = strOrNumOrDate(colValue);
                 if(!colDataType.equals(colNameDataTypeMap.get(colName))){
                     System.out.println("column " +"\"" + colName + ":" +colValue+ "\"" + " data type is not correct");
                     return false;
@@ -187,7 +197,7 @@ public class Parser {
                 for (int j = 0; j < colsNum; j++) {
                     String colName = sqlColsName[j];
                     String colValue = sqlColsValue[i + j];
-                    String colDataType = strOrNum(colValue);
+                    String colDataType = strOrNumOrDate(colValue);
                     if(!colDataType.equals(colNameDataTypeMap.get(colName))){
                         System.out.println("column " +"\"" + colName + ":" +colValue+ "\"" + " data type is not correct");
                         return false;
@@ -204,7 +214,7 @@ public class Parser {
         for (int i = 0; i < sqlColsNames.length; i++) {
             String colName = sqlColsNames[i];
             String colValue = sqlColsValues[i];
-            String colDataType = strOrNum(colValue);
+            String colDataType = strOrNumOrDate(colValue);
             if(!colDataType.equals(colNameDataTypeMap.get(colName))){
                 System.out.println("column " +"\"" + colName + ":" +colValue+ "\"" + " data type is not correct");
                 return false;
@@ -213,17 +223,234 @@ public class Parser {
         return true;
     }
 
-    public static String strOrNum(String data){
+    public static String strOrNumOrDate(String data){
+
+
         if(data.matches("[0-9]+")){
             return "num";}
 
         if(data.charAt(0) == '\'' && data.endsWith("'")){
+            if(data.contains("-")){
+                if(data.length() == 21){
+                    if(ifDateTime(data)){
+                        return "datetime";
+                    }else{
+                        return "str";
+                    }
+                }else if(data.length() == 12){
+                    if(ifDate(data)){
+                        return "date";
+                    }else{
+                        return "str";
+                    }
+                }
+            }
             return "str";
         }else {
             throw new IllegalArgumentException("\"" + data + "\" " + "data type is not correct");
         }
     }
+
+    private static boolean ifDate(String date){
+        //math a format date
+        String regex = "^'\\d{4}-\\d{2}-\\d{2}'$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(date);
+        return matcher.matches();
+    }
+
+    private static boolean ifDateTime(String dateTime){
+        //math a format date
+        String regex = "^'\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}'$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(dateTime);
+        return matcher.matches();
+    }
+
+    private static boolean ifColNameExist(String tableName, String colName){
+        String[] tableHeadName = getTableColsNameList(tableName);
+        return Arrays.asList(tableHeadName).contains(colName);
+    }
 // endregion
+
+
+//region  sql function
+public static boolean isFunctionSelect(String data){
+    String regex = "\\w+\\(\\w+\\)";
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(data);
+    return matcher.matches();
+}
+
+    public static boolean isMaxMinCount(String data){
+        data = data.toLowerCase();
+        String regex = "^(max|min|count|sum|avg)\\([a-zA-Z]+\\)$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(data);
+        boolean result = matcher.matches();
+        if(result){
+            return true;
+        }else{
+            throw new RuntimeException("Invalid function, just allow max, min, count, avg, sum");
+        }
+    }
+
+    private static int getOrderKeyIndexInSelectColName(String sql){
+        String[] selectColNames = getSelectColNames(sql);
+        String orderKey = getOrderKey(sql);
+        for (int i = 0; i < selectColNames.length; i++) {
+            if(selectColNames[i].equals(orderKey)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static String getOrderKey(String sql){
+        String[] sqlArr = sql.split(" ");
+        String[] last4Words = Arrays.copyOfRange(sqlArr, sqlArr.length - 4, sqlArr.length);
+        return  last4Words[2];
+    }
+
+    private static String getOrderType(String sql){
+        String[] sqlArr = sql.split(" ");
+        String[] last4Words = Arrays.copyOfRange(sqlArr, sqlArr.length - 4, sqlArr.length);
+        return  last4Words[3].toLowerCase();
+    }
+
+
+    public static boolean isOrderSelect(String sql){
+        sql = sql.toLowerCase();
+        String[] sqlArr = sql.split(" ");
+        String[] last4Words = Arrays.copyOfRange(sqlArr, sqlArr.length - 4, sqlArr.length);
+        String colName = last4Words[2];
+        String tableName = getTableName(sql);
+        String last4WordsStr = String.join(" ", last4Words);
+
+        if(!ifColNameExist(tableName, colName)){
+            return false;
+        }
+
+        String regex = "order by \\w+ (desc|asc)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(last4WordsStr);
+        return matcher.matches();
+    }
+
+    public static ArrayList<String[]> getOrderSelectResult(String sql,ArrayList<String[]> data){
+        int keyIndex = getOrderKeyIndexInSelectColName(sql);
+        String orderType = getOrderType(sql);
+        if(orderType.equals("desc")){
+           return orderDESC(data, keyIndex);
+        }else if (orderType.equals("asc")){
+            return orderASC(data, keyIndex);
+        }else{
+            throw new RuntimeException("Invalid order type, just allow desc, asc");
+        }
+
+    }
+
+    public static ArrayList<String[]> orderDESC(ArrayList<String[]> data, int index){
+        data.sort((o1, o2) -> {
+            if(o1[index].compareTo(o2[index]) > 0){
+                return -1;
+            }else if(o1[index].compareTo(o2[index]) < 0){
+                return 1;
+            }else{
+                return 0;
+            }
+        });
+        return data;
+
+    }
+
+    public static ArrayList<String[]> orderASC(ArrayList<String[]> data, int index){
+        data.sort((o1, o2) -> {
+            if(o1[index].compareTo(o2[index]) > 0){
+                return 1;
+            }else if(o1[index].compareTo(o2[index]) < 0){
+                return -1;
+            }else{
+                return 0;
+            }
+        });
+        return data;
+    }
+
+    public static String getArgFromMaxMinCount(String data){
+        String[] temp = data.split("\\(");
+        String[] temp2 = temp[1].split("\\)");
+        return temp2[0].toLowerCase();
+    }
+
+    public static double getFunctionSelectResult(String arg, ArrayList<String[]> data){
+        String type = arg.split("\\(")[0].toLowerCase();
+        switch (type){
+            case "max":
+                return max(data);
+            case "min":
+                return min(data);
+            case "count":
+                return count(data);
+            case "sum":
+                return sum(data);
+            case "avg":
+                return avg(data);
+        }
+        return 0;
+    }
+
+    private static double max(ArrayList<String[]> data){
+        double max = Double.parseDouble(data.get(0)[0]);
+        for (String[] line:data
+        ) {
+            double value = Double.parseDouble(line[0]);
+            if(value > max){
+                max = value;
+            }
+        }
+        return max;
+    }
+
+    private static double min(ArrayList<String[]> data){
+        double min = Double.parseDouble(data.get(0)[0]);
+        for (String[] line:data
+        ) {
+            double value = Double.parseDouble(line[0]);
+            if(value < min){
+                min = value;
+            }
+        }
+        return min;
+    }
+
+    private static double avg(ArrayList<String[]> data){
+        double sum = 0;
+        for (String[] line:data
+        ) {
+            sum += Double.parseDouble(line[0]);
+        }
+        return sum/data.size();
+    }
+
+    private static double sum(ArrayList<String[]> data){
+        double sum = 0;
+        for (String[] line:data
+        ) {
+            sum += Double.parseDouble(line[0]);
+        }
+        return sum;
+    }
+
+    private static double count(ArrayList<String[]> data){
+        return (double)data.size();
+    }
+
+
+
+//endregion
+
+
 
 //region # basic data
     ////////////////////////////////////////
@@ -452,7 +679,6 @@ public class Parser {
                 String currentWhereValue = colValueList[j];
                 String currentOperator = colOperatorList[j];
                 if(valueCompare(currentColValue,currentWhereValue,currentOperator)){
-                    continue;
                 }else{
                     qualified = false;
                     break;
@@ -554,15 +780,18 @@ public class Parser {
         switch (sqlType) {
             case "SELECT":
                 Select select = (Select) statement;
+                assert select != null;
                 PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
                 whereClause = plainSelect.getWhere().toString();
                 break;
             case "UPDATE":
                 Update update = (Update) statement;
+                assert update != null;
                 whereClause = update.getWhere().toString();
                 break;
             case "DELETE":
                 Delete delete = (Delete) statement;
+                assert delete != null;
                 whereClause = delete.getWhere().toString();
                 break;
             case "INSERT":
@@ -653,6 +882,7 @@ public class Parser {
         } catch (JSQLParserException e) {
             e.printStackTrace();
         }
+        assert select != null;
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
         List<SelectItem> selectItems = plainSelect.getSelectItems();
         for (SelectItem selectItem : selectItems) {

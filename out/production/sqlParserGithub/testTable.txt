@@ -6,8 +6,8 @@ nancy,29,Germany
 innis,25,China-
 anonym,70,ChinaIn4
 anonym,80,ChinaIn5
-Innis1,18,ChinaIn3
+Innis,23,China
 anonym,70,ChinaIn4
 anonym,80,ChinaIn5
-Innis1,99,USA
-Innis1,23,China
+Innis,23,China
+Innis,23,China

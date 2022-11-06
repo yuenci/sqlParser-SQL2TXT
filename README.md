@@ -36,6 +36,19 @@ Example: ` insert into testtable values ('innis', 23,' China' )`.
 Example: `delete from testtable where address =' China' or (name =' inners3' and age = 27); `
 
 - Support the comparing of =, < >, >, > =, <, < =
+- Support the select function of count, sum, avg, max, min, and distinct
+```sql
+select max(age) from datetime where address = 'China'
+select min(age) from datetime where address = 'China'
+select count(age) from datetime where address = 'China'
+select avg(age) from datetime where address = 'China'
+select sum(age) from datetime where address = 'China'
+```
+- Support the select function of order by
+```sql
+select * from datetime where address = 'China' order by birthday asc
+select * from datetime where address = 'China' order by birthday desc
+```
 
 # Restriction
 
@@ -45,9 +58,9 @@ Example: `delete from testtable where address =' China' or (name =' inners3' and
 # Roadmap
 
 
-- [ ] Date, DateTime dataType
-- [ ] Max,Min
-- [ ] Order
+- [x] Date, DateTime dataType
+- [x] Max,Min,count,avg,sum
+- [x] Order
 - [ ] Group
 - [ ] Join
 
