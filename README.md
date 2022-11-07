@@ -20,6 +20,8 @@ Under the [example](https://github.com/yuenci/sqlParser/tree/master/src/example)
 ![Delete](https://github.com/yuenci/sqlParser/blob/master/src/example/Delete.gif)
 ### Select functions: max(), min(). count(), avg(), sum()
 ![functuons](https://github.com/yuenci/sqlParser-SQL2TXT/blob/master/src/example/function.gif)
+### Select distinst
+![sitinst](https://github.com/yuenci/sqlParser-SQL2TXT/blob/master/src/example/distinct.gif)
 ### Order(ASC, DESC)
 ![Order](https://github.com/yuenci/sqlParser-SQL2TXT/blob/master/src/example/order.gif)
 
