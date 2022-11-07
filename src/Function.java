@@ -5,8 +5,9 @@ import java.util.regex.Pattern;
 
 public class Function {
     public static void main(String[] args) {
-        selectTest();
+        //selectTest();
         //functionTest();
+        distinct();
     }
 
     public static  void selectTest(){
@@ -74,4 +75,8 @@ public class Function {
         return data.size();
     }
 
+    public static void distinct(){
+        String sql = "select distinct(name) from datetime where address = 'China'";
+        System.out.println(Parser.isDistinct(sql));
+    }
 }

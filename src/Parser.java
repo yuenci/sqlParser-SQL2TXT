@@ -35,14 +35,13 @@ public class Parser {
     // sql: select * from table1 where col1 = val1 and col2 = val2 ✅
 
 
-
     ////////////////////////////////////////
     // configs of the database
     //
     ////////////////////////////////////////
     public static String dataFilesPath = "src/";
 
-// region # validatation
+    // region # validatation
     ////////////////////////
     // validation
     //
@@ -62,7 +61,7 @@ public class Parser {
             return false;
         }
 
-        if(!checkSQLOperateType(sql).equals("INSERT")) {
+        if (!checkSQLOperateType(sql).equals("INSERT")) {
             getWhereClauseLogic(sql);
         }
 
@@ -79,7 +78,7 @@ public class Parser {
         String tableName = getTableName(sql);
         String[] tableHeadName = getTableColsNameList(tableName);
         //System.out.println("tableHeadName: " + Arrays.toString(tableHeadName));
-        
+
         String[] sqlColsName = null;
         String[] whereClauseConditions = null;
 
@@ -101,18 +100,19 @@ public class Parser {
                 break;
         }
 
-        if(sqlColsName == null && whereClauseConditions == null){
+        if (sqlColsName == null && whereClauseConditions == null) {
             throw new IllegalArgumentException("sqlColsName and whereClauseConditions are both null");
         }
 
-        if(sqlColsName != null){
+        if (sqlColsName != null) {
             for (String colName : sqlColsName) {
                 if (!Arrays.asList(tableHeadName).contains(colName)) {
-                    if(isMaxMinCount(colName)){
-                        if(!Arrays.asList(tableHeadName).contains(getArgFromMaxMinCount(colName))){
+                    if (isDistinct(sql)) continue;
+                    if (isMaxMinCount(colName)) {
+                        if (!Arrays.asList(tableHeadName).contains(getArgFromMaxMinCount(colName))) {
                             System.out.println("\"" + colName + "\"" + " does not exist");
                             return false;
-                        }else{
+                        } else {
                             continue;
                         }
                     }
@@ -122,11 +122,11 @@ public class Parser {
             }
         }
 
-        if(whereClauseConditions != null){
+        if (whereClauseConditions != null) {
             for (int i = 0; i < whereClauseConditions.length; i++) {
-                if(i % 3 == 0){
+                if (i % 3 == 0) {
                     if (!Arrays.asList(tableHeadName).contains(whereClauseConditions[i])) {
-                        System.out.println("column " +"\"" + whereClauseConditions[i] + "\"" + " does not exist");
+                        System.out.println("column " + "\"" + whereClauseConditions[i] + "\"" + " does not exist");
                         return false;
                     }
                 }
@@ -154,104 +154,103 @@ public class Parser {
             case "UPDATE": {
                 sqlColsName = getUpdateColNames(sql);
                 String[] sqlColsValue = getUpdateColValues(sql);
-                whereClauseConditions = getWhereClauseCondition(sql);
+                //whereClauseConditions = getWhereClauseCondition(sql);
                 return ifUpdateClauseDataTypeCorrect(tableName, sqlColsName, sqlColsValue);
             }
             case "DELETE":
-                whereClauseConditions = getWhereClauseCondition(sql);
-                break;
             case "SELECT":
                 whereClauseConditions = getWhereClauseCondition(sql);
                 break;
         }
 
-        if(whereClauseConditions!=null){
+        if (whereClauseConditions != null) {
             return ifWhereConditionDataTypeCorrect(tableName, whereClauseConditions);
         }
         return true;
     }
 
-    public static boolean ifWhereConditionDataTypeCorrect(String tableName, String[] whereClauseConditions){
+    public static boolean ifWhereConditionDataTypeCorrect(String tableName, String[] whereClauseConditions) {
         // System.out.println( "whereClauseConditions: " + Arrays.toString(whereClauseConditions));
         Map<String, String> colNameDataTypeMap = getTableDefaultDataType(tableName);
         for (int i = 0; i < whereClauseConditions.length; i++) {
-            if(i % 3 == 0){
+            if (i % 3 == 0) {
                 String colName = whereClauseConditions[i];
                 String colValue = whereClauseConditions[i + 2];
                 String colDataType = strOrNumOrDate(colValue);
-                if(!colDataType.equals(colNameDataTypeMap.get(colName))){
-                    System.out.println("column " +"\"" + colName + ":" +colValue+ "\"" + " data type is not correct");
+                if (!colDataType.equals(colNameDataTypeMap.get(colName))) {
+                    System.out.println("column " + "\"" + colName + ":" + colValue + "\"" + " data type is not correct");
                     return false;
                 }
             }
         }
-        return  true;
+        return true;
     }
 
-    public static boolean ifInsertClauseDataTypeCorrect(String tableName, String[] sqlColsName, String[] sqlColsValue){
+    public static boolean ifInsertClauseDataTypeCorrect(String tableName, String[] sqlColsName, String[] sqlColsValue) {
         Map<String, String> colNameDataTypeMap = getTableDefaultDataType(tableName);
         int colsNum = sqlColsName.length;
 
         for (int i = 0; i < sqlColsValue.length; i++) {
-            if (i % colsNum == 0){
+            if (i % colsNum == 0) {
                 for (int j = 0; j < colsNum; j++) {
                     String colName = sqlColsName[j];
                     String colValue = sqlColsValue[i + j];
                     String colDataType = strOrNumOrDate(colValue);
-                    if(!colDataType.equals(colNameDataTypeMap.get(colName))){
-                        System.out.println("column " +"\"" + colName + ":" +colValue+ "\"" + " data type is not correct");
+                    if (!colDataType.equals(colNameDataTypeMap.get(colName))) {
+                        System.out.println("column " + "\"" + colName + ":" + colValue + "\"" + " data type is not correct");
                         return false;
                     }
                 }
             }
         }
-        return  true;
+        return true;
     }
 
-    public static boolean ifUpdateClauseDataTypeCorrect(String tableName, String[] sqlColsNames, String[] sqlColsValues){
+    public static boolean ifUpdateClauseDataTypeCorrect(String tableName, String[] sqlColsNames, String[] sqlColsValues) {
         Map<String, String> colNameDataTypeMap = getTableDefaultDataType(tableName);
 
         for (int i = 0; i < sqlColsNames.length; i++) {
             String colName = sqlColsNames[i];
             String colValue = sqlColsValues[i];
             String colDataType = strOrNumOrDate(colValue);
-            if(!colDataType.equals(colNameDataTypeMap.get(colName))){
-                System.out.println("column " +"\"" + colName + ":" +colValue+ "\"" + " data type is not correct");
+            if (!colDataType.equals(colNameDataTypeMap.get(colName))) {
+                System.out.println("column " + "\"" + colName + ":" + colValue + "\"" + " data type is not correct");
                 return false;
-        }
+            }
         }
         return true;
     }
 
-    public static String strOrNumOrDate(String data){
+    public static String strOrNumOrDate(String data) {
 
 
-        if(data.matches("[0-9]+")){
-            return "num";}
+        if (data.matches("[0-9]+")) {
+            return "num";
+        }
 
-        if(data.charAt(0) == '\'' && data.endsWith("'")){
-            if(data.contains("-")){
-                if(data.length() == 21){
-                    if(ifDateTime(data)){
+        if (data.charAt(0) == '\'' && data.endsWith("'")) {
+            if (data.contains("-")) {
+                if (data.length() == 21) {
+                    if (ifDateTime(data)) {
                         return "datetime";
-                    }else{
+                    } else {
                         return "str";
                     }
-                }else if(data.length() == 12){
-                    if(ifDate(data)){
+                } else if (data.length() == 12) {
+                    if (ifDate(data)) {
                         return "date";
-                    }else{
+                    } else {
                         return "str";
                     }
                 }
             }
             return "str";
-        }else {
+        } else {
             throw new IllegalArgumentException("\"" + data + "\" " + "data type is not correct");
         }
     }
 
-    private static boolean ifDate(String date){
+    private static boolean ifDate(String date) {
         //math a format date
         String regex = "^'\\d{4}-\\d{2}-\\d{2}'$";
         Pattern pattern = Pattern.compile(regex);
@@ -259,7 +258,7 @@ public class Parser {
         return matcher.matches();
     }
 
-    private static boolean ifDateTime(String dateTime){
+    private static boolean ifDateTime(String dateTime) {
         //math a format date
         String regex = "^'\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}'$";
         Pattern pattern = Pattern.compile(regex);
@@ -267,59 +266,59 @@ public class Parser {
         return matcher.matches();
     }
 
-    private static boolean ifColNameExist(String tableName, String colName){
+    private static boolean ifColNameExist(String tableName, String colName) {
         String[] tableHeadName = getTableColsNameList(tableName);
         return Arrays.asList(tableHeadName).contains(colName);
     }
 // endregion
 
 
-//region  sql function
-public static boolean isFunctionSelect(String data){
-    String regex = "\\w+\\(\\w+\\)";
-    Pattern pattern = Pattern.compile(regex);
-    Matcher matcher = pattern.matcher(data);
-    return matcher.matches();
-}
+    //region  sql function
+    public static boolean isFunctionSelect(String data) {
+        String regex = "\\w+\\(\\w+\\)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(data);
+        return matcher.matches();
+    }
 
-    public static boolean isMaxMinCount(String data){
+    public static boolean isMaxMinCount(String data) {
         data = data.toLowerCase();
-        String regex = "^(max|min|count|sum|avg)\\([a-zA-Z]+\\)$";
+        String regex = "^(max|min|count|sum|avg|distinct)\\([a-zA-Z]+\\)$";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(data);
         boolean result = matcher.matches();
-        if(result){
+        if (result) {
             return true;
-        }else{
-            throw new RuntimeException("Invalid function, just allow max, min, count, avg, sum");
+        } else {
+            throw new RuntimeException("Invalid function, just allow max, min, count, avg, sum, distinct");
         }
     }
 
-    private static int getOrderKeyIndexInSelectColName(String sql){
+    private static int getOrderKeyIndexInSelectColName(String sql) {
         String[] selectColNames = getSelectColNames(sql);
         String orderKey = getOrderKey(sql);
         for (int i = 0; i < selectColNames.length; i++) {
-            if(selectColNames[i].equals(orderKey)){
+            if (selectColNames[i].equals(orderKey)) {
                 return i;
             }
         }
         return -1;
     }
 
-    private static String getOrderKey(String sql){
+    private static String getOrderKey(String sql) {
         String[] sqlArr = sql.split(" ");
         String[] last4Words = Arrays.copyOfRange(sqlArr, sqlArr.length - 4, sqlArr.length);
-        return  last4Words[2];
+        return last4Words[2];
     }
 
-    private static String getOrderType(String sql){
+    private static String getOrderType(String sql) {
         String[] sqlArr = sql.split(" ");
         String[] last4Words = Arrays.copyOfRange(sqlArr, sqlArr.length - 4, sqlArr.length);
-        return  last4Words[3].toLowerCase();
+        return last4Words[3].toLowerCase();
     }
 
 
-    public static boolean isOrderSelect(String sql){
+    public static boolean isOrderSelect(String sql) {
         sql = sql.toLowerCase();
         String[] sqlArr = sql.split(" ");
         String[] last4Words = Arrays.copyOfRange(sqlArr, sqlArr.length - 4, sqlArr.length);
@@ -327,7 +326,7 @@ public static boolean isFunctionSelect(String data){
         String tableName = getTableName(sql);
         String last4WordsStr = String.join(" ", last4Words);
 
-        if(!ifColNameExist(tableName, colName)){
+        if (!ifColNameExist(tableName, colName)) {
             return false;
         }
 
@@ -337,26 +336,26 @@ public static boolean isFunctionSelect(String data){
         return matcher.matches();
     }
 
-    public static ArrayList<String[]> getOrderSelectResult(String sql,ArrayList<String[]> data){
+    public static ArrayList<String[]> getOrderSelectResult(String sql, ArrayList<String[]> data) {
         int keyIndex = getOrderKeyIndexInSelectColName(sql);
         String orderType = getOrderType(sql);
-        if(orderType.equals("desc")){
-           return orderDESC(data, keyIndex);
-        }else if (orderType.equals("asc")){
+        if (orderType.equals("desc")) {
+            return orderDESC(data, keyIndex);
+        } else if (orderType.equals("asc")) {
             return orderASC(data, keyIndex);
-        }else{
+        } else {
             throw new RuntimeException("Invalid order type, just allow desc, asc");
         }
 
     }
 
-    public static ArrayList<String[]> orderDESC(ArrayList<String[]> data, int index){
+    public static ArrayList<String[]> orderDESC(ArrayList<String[]> data, int index) {
         data.sort((o1, o2) -> {
-            if(o1[index].compareTo(o2[index]) > 0){
+            if (o1[index].compareTo(o2[index]) > 0) {
                 return -1;
-            }else if(o1[index].compareTo(o2[index]) < 0){
+            } else if (o1[index].compareTo(o2[index]) < 0) {
                 return 1;
-            }else{
+            } else {
                 return 0;
             }
         });
@@ -364,28 +363,28 @@ public static boolean isFunctionSelect(String data){
 
     }
 
-    public static ArrayList<String[]> orderASC(ArrayList<String[]> data, int index){
+    public static ArrayList<String[]> orderASC(ArrayList<String[]> data, int index) {
         data.sort((o1, o2) -> {
-            if(o1[index].compareTo(o2[index]) > 0){
+            if (o1[index].compareTo(o2[index]) > 0) {
                 return 1;
-            }else if(o1[index].compareTo(o2[index]) < 0){
+            } else if (o1[index].compareTo(o2[index]) < 0) {
                 return -1;
-            }else{
+            } else {
                 return 0;
             }
         });
         return data;
     }
 
-    public static String getArgFromMaxMinCount(String data){
+    public static String getArgFromMaxMinCount(String data) {
         String[] temp = data.split("\\(");
         String[] temp2 = temp[1].split("\\)");
         return temp2[0].toLowerCase();
     }
 
-    public static double getFunctionSelectResult(String arg, ArrayList<String[]> data){
+    public static double getFunctionSelectResult(String arg, ArrayList<String[]> data) {
         String type = arg.split("\\(")[0].toLowerCase();
-        switch (type){
+        switch (type) {
             case "max":
                 return max(data);
             case "min":
@@ -400,59 +399,83 @@ public static boolean isFunctionSelect(String data){
         return 0;
     }
 
-    private static double max(ArrayList<String[]> data){
+    private static double max(ArrayList<String[]> data) {
         double max = Double.parseDouble(data.get(0)[0]);
-        for (String[] line:data
+        for (String[] line : data
         ) {
             double value = Double.parseDouble(line[0]);
-            if(value > max){
+            if (value > max) {
                 max = value;
             }
         }
         return max;
     }
 
-    private static double min(ArrayList<String[]> data){
+    private static double min(ArrayList<String[]> data) {
         double min = Double.parseDouble(data.get(0)[0]);
-        for (String[] line:data
+        for (String[] line : data
         ) {
             double value = Double.parseDouble(line[0]);
-            if(value < min){
+            if (value < min) {
                 min = value;
             }
         }
         return min;
     }
 
-    private static double avg(ArrayList<String[]> data){
+    private static double avg(ArrayList<String[]> data) {
         double sum = 0;
-        for (String[] line:data
+        for (String[] line : data
         ) {
             sum += Double.parseDouble(line[0]);
         }
-        return sum/data.size();
+        return sum / data.size();
     }
 
-    private static double sum(ArrayList<String[]> data){
+    private static double sum(ArrayList<String[]> data) {
         double sum = 0;
-        for (String[] line:data
+        for (String[] line : data
         ) {
             sum += Double.parseDouble(line[0]);
         }
         return sum;
     }
 
-    private static double count(ArrayList<String[]> data){
-        return (double)data.size();
+    private static double count(ArrayList<String[]> data) {
+        return data.size();
     }
 
+    public static boolean isDistinct(String sql) {
+        String table = getTableName(sql);
+        String colName = sql.split(" ")[1].replace("distinct(", "").
+                replace(")", "");
+        if (!ifColNameExist(table, colName)) {
+            return false;
+        }
+        sql = sql.toLowerCase();
+        String regex = "^select\\s+distinct\\(\\w+\\).*";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(sql);
+        return matcher.matches();
+    }
 
+    public static ArrayList<String[]> getDistinctResult(ArrayList<String[]> data) {
+        ArrayList<String[]> result = new ArrayList<>();
+        ArrayList<String> temp = new ArrayList<>();
+        for (String[] line : data
+        ) {
+            if (!temp.contains(line[0])) {
+                temp.add(line[0]);
+                result.add(line);
+            }
+        }
+        return result;
+    }
 
 //endregion
 
 
-
-//region # basic data
+    //region # basic data
     ////////////////////////////////////////
     // Get basic data from sql
     //
@@ -582,11 +605,11 @@ public static boolean isFunctionSelect(String data){
         return res;
     }
 
-    public static Map<String,String> getTableDefaultDataType(String tableName){
+    public static Map<String, String> getTableDefaultDataType(String tableName) {
         String path = getFilePathFromTableName(tableName);
         ArrayList<String[]> data = FileOperate.readFileToArray(path);
         String[] tableHead = data.get(0);
-        Map<String,String> res = new HashMap<>();
+        Map<String, String> res = new HashMap<>();
         for (String s : tableHead) {
             String ColName = s.split(":")[0].trim();
             String ColType = s.split(":")[1].split("=")[0].trim();
@@ -604,8 +627,8 @@ public static boolean isFunctionSelect(String data){
     }
 
     public static int[] getColIndexesFromWhereCondation(String tableName, String[] whereCondation) {
-        int[] colIndexList = new int[whereCondation.length/3];
-        for (int i = 0; i <whereCondation.length ; i++) {
+        int[] colIndexList = new int[whereCondation.length / 3];
+        for (int i = 0; i < whereCondation.length; i++) {
             if (i % 3 == 0) {
                 colIndexList[i / 3] = getColIndexFromColName(tableName, whereCondation[i]);
             }
@@ -616,9 +639,9 @@ public static boolean isFunctionSelect(String data){
 
     public static String[] getColValuesFromWhereCondation(String[] whereCondation) {
 
-        String[] colIndexValue = new String[whereCondation.length/3];
-        for (int i = 0; i <whereCondation.length /3; i++) {
-            colIndexValue[i] = whereCondation[i*3+2];
+        String[] colIndexValue = new String[whereCondation.length / 3];
+        for (int i = 0; i < whereCondation.length / 3; i++) {
+            colIndexValue[i] = whereCondation[i * 3 + 2];
         }
 
         return colIndexValue;
@@ -626,15 +649,15 @@ public static boolean isFunctionSelect(String data){
 
     public static String[] getColOperatorFromWhereCondation(String[] whereCondation) {
 
-        String[] colOperators = new String[whereCondation.length/3];
-        for (int i = 0; i <whereCondation.length /3; i++) {
-            colOperators[i] = whereCondation[i*3+1];
+        String[] colOperators = new String[whereCondation.length / 3];
+        for (int i = 0; i < whereCondation.length / 3; i++) {
+            colOperators[i] = whereCondation[i * 3 + 1];
         }
         return colOperators;
     }
 
-    public static int[] getQualifiedRowsIndex(String sql){
-        if (checkSQLOperateType(sql).equals("INSERT")){
+    public static int[] getQualifiedRowsIndex(String sql) {
+        if (checkSQLOperateType(sql).equals("INSERT")) {
             throw new IllegalArgumentException("\"INSERT\" statement dose not need to check qualified rows");
         }
 
@@ -642,15 +665,15 @@ public static boolean isFunctionSelect(String data){
         String[] whereCondition = getWhereClauseCondition(sql);
         //System.out.println( "whereCondition: " + Arrays.toString(whereCondition));
         String logicOperator = getWhereClauseLogic(sql);
-        if(Objects.equals(logicOperator, "SINGLE") || Objects.equals(logicOperator, "AND")){
-            return getQualifiedRowsIndexLogicAnd(tableName,whereCondition);
-        }else  if (Objects.equals(logicOperator, "OR")){
-            return getQualifiedRowsIndexLogicOr(tableName,whereCondition);
+        if (Objects.equals(logicOperator, "SINGLE") || Objects.equals(logicOperator, "AND")) {
+            return getQualifiedRowsIndexLogicAnd(tableName, whereCondition);
+        } else if (Objects.equals(logicOperator, "OR")) {
+            return getQualifiedRowsIndexLogicOr(tableName, whereCondition);
         }
         return null;
     }
 
-    public static int[] getQualifiedRowsIndexLogicAnd(String tableName, String[] whereCondition){
+    public static int[] getQualifiedRowsIndexLogicAnd(String tableName, String[] whereCondition) {
         String path = getFilePathFromTableName(tableName);
         ArrayList<String[]> data = FileOperate.readFileToArray(path);
         ArrayList<Integer> qualifiedRowsIndex = new ArrayList<>();
@@ -662,7 +685,7 @@ public static boolean isFunctionSelect(String data){
 
         //System.out.println( "whereCondition: " + Arrays.toString(whereCondition));
 
-        int[] colIndexList = getColIndexesFromWhereCondation(tableName,whereCondition);
+        int[] colIndexList = getColIndexesFromWhereCondation(tableName, whereCondition);
         //System.out.println( "colIndexList: " + Arrays.toString(colIndexList));
 
         String[] colValueList = getColValuesFromWhereCondation(whereCondition);
@@ -678,28 +701,28 @@ public static boolean isFunctionSelect(String data){
                 String currentColValue = line[colIndexList[j]];
                 String currentWhereValue = colValueList[j];
                 String currentOperator = colOperatorList[j];
-                if(valueCompare(currentColValue,currentWhereValue,currentOperator)){
-                }else{
+                if (valueCompare(currentColValue, currentWhereValue, currentOperator)) {
+                } else {
                     qualified = false;
                     break;
                 }
             }
-            if (qualified){
+            if (qualified) {
                 qualifiedRowsIndex.add(i);
             }
         }
 
 
-        return qualifiedRowsIndex.stream().mapToInt(i->i).toArray();
+        return qualifiedRowsIndex.stream().mapToInt(i -> i).toArray();
     }
 
-    public static int[] getQualifiedRowsIndexLogicOr(String tableName, String[] whereCondition){
+    public static int[] getQualifiedRowsIndexLogicOr(String tableName, String[] whereCondition) {
         String path = getFilePathFromTableName(tableName);
         ArrayList<String[]> data = FileOperate.readFileToArray(path);
         ArrayList<Integer> qualifiedRowsIndex = new ArrayList<>();
 
 
-        int[] colIndexList = getColIndexesFromWhereCondation(tableName,whereCondition);
+        int[] colIndexList = getColIndexesFromWhereCondation(tableName, whereCondition);
         String[] colValueList = getColValuesFromWhereCondation(whereCondition);
         String[] colOperatorList = getColOperatorFromWhereCondation(whereCondition);
 
@@ -710,27 +733,27 @@ public static boolean isFunctionSelect(String data){
                 String currentColValue = line[colIndexList[j]];
                 String currentWhereValue = colValueList[j];
                 String currentOperator = colOperatorList[j];
-                if(valueCompare(currentColValue,currentWhereValue,currentOperator)){
+                if (valueCompare(currentColValue, currentWhereValue, currentOperator)) {
                     qualified = true;
                 }
             }
-            if (qualified){
+            if (qualified) {
                 qualifiedRowsIndex.add(i);
             }
         }
 
 
-        return qualifiedRowsIndex.stream().mapToInt(i->i).toArray();
+        return qualifiedRowsIndex.stream().mapToInt(i -> i).toArray();
     }
 
-    public static boolean valueCompare(String colValue, String whereValue, String operator){
-        if(whereValue.charAt(0) == '\'' && whereValue.endsWith("'")){
-            whereValue = whereValue.substring(1,whereValue.length()-1);
+    public static boolean valueCompare(String colValue, String whereValue, String operator) {
+        if (whereValue.charAt(0) == '\'' && whereValue.endsWith("'")) {
+            whereValue = whereValue.substring(1, whereValue.length() - 1);
         }
 
-        if (operator.equals("=")){
+        if (operator.equals("=")) {
             return colValue.equals(whereValue);
-        }else if (operator.equals("<>")){
+        } else if (operator.equals("<>")) {
             return !Objects.equals(colValue, whereValue);
         }
 
@@ -752,11 +775,11 @@ public static boolean isFunctionSelect(String data){
     }
 
     //clean data
-    public static String cleanData(String data){
-        if(data.charAt(0) == '\'' && data.endsWith("'")){
-           return   data.substring(1,data.length()-1);
+    public static String cleanData(String data) {
+        if (data.charAt(0) == '\'' && data.endsWith("'")) {
+            return data.substring(1, data.length() - 1);
         }
-        return  data;
+        return data;
     }
 // endregion
 
@@ -768,7 +791,7 @@ public static boolean isFunctionSelect(String data){
 
 
     // get where clause
-    public static ArrayList<String> getWhereClause(String sql,String type) {
+    public static ArrayList<String> getWhereClause(String sql, String type) {
         String sqlType = checkSQLOperateType(sql);
         Statement statement = null;
         try {
@@ -809,8 +832,8 @@ public static boolean isFunctionSelect(String data){
         ArrayList<String> conditionList = new ArrayList<>();
         ArrayList<String> conditionLogic = new ArrayList<>();
 
-        if (expr == null){
-            throw  new IllegalArgumentException("Where clause is null");
+        if (expr == null) {
+            throw new IllegalArgumentException("Where clause is null");
         }
 
         expr.accept(new ExpressionVisitorAdapter() {
@@ -825,10 +848,10 @@ public static boolean isFunctionSelect(String data){
                     conditionList.add(expr.getRightExpression().toString());
                 }
 
-                if(expr instanceof AndExpression){
+                if (expr instanceof AndExpression) {
                     //System.out.println("AndExpression");
                     conditionLogic.add("AND");
-                } else if(expr instanceof OrExpression){
+                } else if (expr instanceof OrExpression) {
                     //System.out.println("OrExpression");
                     conditionLogic.add("OR");
                 }
@@ -839,12 +862,11 @@ public static boolean isFunctionSelect(String data){
 //        System.out.println(conditionList);
 //        System.out.println(conditionLogic);
 
-        if(type.equals("condition")){
-            return conditionList;}
-        else if(type.equals("logic")){
+        if (type.equals("condition")) {
+            return conditionList;
+        } else if (type.equals("logic")) {
             return conditionLogic;
-        }
-        else{
+        } else {
             throw new IllegalArgumentException(
                     "type must be 'condition' or 'logic'");
         }
@@ -852,13 +874,13 @@ public static boolean isFunctionSelect(String data){
 
     // get where clause condition
     public static String[] getWhereClauseCondition(String sql) {
-        return getWhereClause(sql,"condition").toArray(new String[0]);
+        return getWhereClause(sql, "condition").toArray(new String[0]);
     }
 
     // check where clause type
     public static String getWhereClauseLogic(String sql) {
-        ArrayList<String> conditionLogic = getWhereClause(sql,"logic");
-        if(conditionLogic.size() == 0){
+        ArrayList<String> conditionLogic = getWhereClause(sql, "logic");
+        if (conditionLogic.size() == 0) {
             return "SINGLE";
         }
 
@@ -890,7 +912,7 @@ public static boolean isFunctionSelect(String data){
             //System.out.println(selectItem.toString());
         }
 
-        if(colNames.get(0).equals("*")){
+        if (colNames.get(0).equals("*")) {
             String tableName = getTableName(sql);
             return getTableColsNameList(tableName);
         }
@@ -898,7 +920,7 @@ public static boolean isFunctionSelect(String data){
         return colNames.toArray(new String[0]);
     }
 
-    public static String[] getInsertClause(String sql,String type) {
+    public static String[] getInsertClause(String sql, String type) {
         ArrayList<String> colNames = new ArrayList<>();
         ArrayList<String> colValues = new ArrayList<>();
         Insert insert = null;
@@ -908,16 +930,16 @@ public static boolean isFunctionSelect(String data){
             e.printStackTrace();
         }
 
-        if(insert == null){
+        if (insert == null) {
             throw new IllegalArgumentException(
                     "Insert statement has no column names");
         }
 
         List<Column> columns = insert.getColumns();
-        if(columns == null){
+        if (columns == null) {
             String[] colNamesArray = getTableColsNameList(getTableName(sql));
             Collections.addAll(colNames, colNamesArray);
-        } else{
+        } else {
             for (Column column : columns) {
                 colNames.add(column.toString());
                 //System.out.println(column.toString());
@@ -938,8 +960,8 @@ public static boolean isFunctionSelect(String data){
                 colValues.add(expression.toString());
                 //System.out.println(expression.toString());
             }
-        }else if (itemsList instanceof MultiExpressionList) {
-            for (ExpressionList expressionList :  ((MultiExpressionList) itemsList).getExpressionLists()) {
+        } else if (itemsList instanceof MultiExpressionList) {
+            for (ExpressionList expressionList : ((MultiExpressionList) itemsList).getExpressionLists()) {
                 for (Expression expression : expressionList.getExpressions()) {
                     colValues.add(expression.toString());
                     //System.out.println(expression.toString());
@@ -952,26 +974,25 @@ public static boolean isFunctionSelect(String data){
 //        System.out.println(colNames);
 //        System.out.println(colValues);
 
-        if(type.equals("colNames")){
-            return colNames.toArray(new String[0]);}
-        else if(type.equals("colValues")){
+        if (type.equals("colNames")) {
+            return colNames.toArray(new String[0]);
+        } else if (type.equals("colValues")) {
             return colValues.toArray(new String[0]);
-        }
-        else{
+        } else {
             throw new IllegalArgumentException(
                     "type must be 'colNames' or 'colValues'");
         }
     }
 
     public static String[] getInsertColNames(String sql) {
-        return getInsertClause(sql,"colNames");
+        return getInsertClause(sql, "colNames");
     }
 
     public static String[] getInsertColValues(String sql) {
-        return getInsertClause(sql,"colValues");
+        return getInsertClause(sql, "colValues");
     }
 
-    public static String[] getUpdateClause(String sql,String type) {
+    public static String[] getUpdateClause(String sql, String type) {
         ArrayList<String> colNames = new ArrayList<>();
         ArrayList<String> colValues = new ArrayList<>();
         Update update = null;
@@ -981,12 +1002,12 @@ public static boolean isFunctionSelect(String data){
             e.printStackTrace();
         }
 
-        if(update == null){
+        if (update == null) {
             throw new IllegalArgumentException(
                     "Update statement has no column names");
         }
 
-        ArrayList<UpdateSet> set =  update.getUpdateSets();
+        ArrayList<UpdateSet> set = update.getUpdateSets();
         for (UpdateSet updateSet : set) {
 //            System.out.println(updateSet.getColumns().toString());
 //            System.out.println(updateSet.getExpressions().toString());
@@ -994,27 +1015,26 @@ public static boolean isFunctionSelect(String data){
             colValues.add(updateSet.getExpressions().get(0).toString());
         }
 
-        if(Objects.equals(type, "colNames")){
-            return colNames.toArray(new String[0]);}
-        else if(Objects.equals(type, "colValues")){
+        if (Objects.equals(type, "colNames")) {
+            return colNames.toArray(new String[0]);
+        } else if (Objects.equals(type, "colValues")) {
             return colValues.toArray(new String[0]);
-        }
-        else{
+        } else {
             throw new IllegalArgumentException(
                     "type must be 'colNames' or 'colValues'");
         }
     }
 
     public static String[] getUpdateColNames(String sql) {
-        return getUpdateClause(sql,"colNames");
+        return getUpdateClause(sql, "colNames");
     }
 
     public static String[] getUpdateColValues(String sql) {
-        return getUpdateClause(sql,"colValues");
+        return getUpdateClause(sql, "colValues");
     }
 // endregion
 
-// region # test
+    // region # test
     ////////////////////////
     // test
     //
@@ -1031,7 +1051,7 @@ public static boolean isFunctionSelect(String data){
         System.out.println(getTableName(sqlInsert));
     }
 
-    public static void getWhereClauseConditionTest(){
+    public static void getWhereClauseConditionTest() {
         String sqlSelect = "select * from table1 where id = 1 and name = 'test' or age = 1";
         String sqlUpdate = "update table2 set name = 'test' where id = 1 and age = 10";
         String sqlDelete = "delete from table3 where id = 1 and address = 'China'";
@@ -1041,7 +1061,7 @@ public static boolean isFunctionSelect(String data){
         System.out.println("length: " + res.length);
     }
 
-    public static void checkWhereClauseTypeTest(){
+    public static void checkWhereClauseTypeTest() {
         String sqlSimple = "delete from table3 where id = 1"; // SIMPLE true
         String sqlSelect = "select * from table1 where id = 1 and name = 'test' and age = 10"; // AND true
         String sqlUpdate = "update table2 set name = 'test' where id = 1 or age = 10 or address = 'China'"; // OR true
@@ -1054,67 +1074,66 @@ public static boolean isFunctionSelect(String data){
         System.out.println(getWhereClauseLogic(insert));
     }
 
-    public static void getSelectColNamesTest(){
+    public static void getSelectColNamesTest() {
         String sqlSelect = "select age , country, name from table1";
         String sqlSelect1 = "select * from testTable";
-        String[] res =  getSelectColNames(sqlSelect1);
+        String[] res = getSelectColNames(sqlSelect1);
         System.out.println(Arrays.toString(res));
     }
 
-    public static void getInsertColNamesAndValuesTest(){
+    public static void getInsertColNamesAndValuesTest() {
         String sqlInsert = "insert into table4 (name, age ) values ('test', 1), ('test2', 2), ('test3', 3);";
-        String[] res =  getInsertClause(sqlInsert,"colNames");
+        String[] res = getInsertClause(sqlInsert, "colNames");
         System.out.println(Arrays.toString(res));
 
-        String[] res1 =  getInsertClause(sqlInsert,"colValues");
+        String[] res1 = getInsertClause(sqlInsert, "colValues");
         System.out.println(Arrays.toString(res1));
     }
 
-    public static void getUpdateColNamesAndValuesTest(){
+    public static void getUpdateColNamesAndValuesTest() {
         String sqlUpdate = "update table2 set name = 'test', age=1 ,country = 'China' where id = 1 and age = 10";
-        String[] res =  getUpdateClause(sqlUpdate,"colNames");
+        String[] res = getUpdateClause(sqlUpdate, "colNames");
         System.out.println(Arrays.toString(res));
 
-        String[] res1 =  getUpdateClause(sqlUpdate,"colValues");
+        String[] res1 = getUpdateClause(sqlUpdate, "colValues");
         System.out.println(Arrays.toString(res1));
     }
 
-    public static void ifTableExistTest(){
-         boolean res =  ifTableExist("testTable1");
-            System.out.println(res);
+    public static void ifTableExistTest() {
+        boolean res = ifTableExist("testTable1");
+        System.out.println(res);
     }
 
-    public static void ifColsExistTest(){
+    public static void ifColsExistTest() {
         String sqlInsert = "insert into testTable (name, age) values ('test', 1), ('test2', 2), ('test3', 3);";
         String sqlInsert1 = "insert into testTable values ('test', 1), ('test2', 2), ('test3', 3);";
         String sqlUpdate = "update testTable set name = 'test', age = 1 ,address = 'China' where name = 1 and age = 10";
         String sqlSelect = "select age , address, name from testTable where   name = 'test' and age = 10";
         String sqlDelete = "delete from testTable where age = 1 and address = 'China' or age1 = 10";
 
-        boolean res =  ifColsExist(sqlDelete);
+        boolean res = ifColsExist(sqlDelete);
         System.out.println(res);
     }
 
     // ifDataTypeCorrect
-    public static void ifDataTypeCorrectTest(){
+    public static void ifDataTypeCorrectTest() {
         String sqlInsert = "insert into testTable (name, age) values ('test', 1), ('test2', 2), ('test3', 3);";
         String sqlInsert1 = "insert into testTable values ('test', 1), ('test2', 2), ('test3', 3);";
         String sqlUpdate = "update testTable set name = 'test', age = 1 ,address = 'China' where name = '1' and age = 10";
         String sqlSelect = "select age , address, name from testTable where   name = 'test' and age = 10";
         String sqlDelete = "delete from testTable where age = 1 and address = 'China' or age1 = 10";
 
-        boolean res =  ifDataTypeCorrect(sqlUpdate);
+        boolean res = ifDataTypeCorrect(sqlUpdate);
         System.out.println(res);
     }
 
-    public static void getTableDefaultDataType(){
-        Map<String,String> res = getTableDefaultDataType("testTable");
+    public static void getTableDefaultDataType() {
+        Map<String, String> res = getTableDefaultDataType("testTable");
         System.out.println(res);
     }
 
 
-
-    public static void getQualifiedRowsIndexTest(){
+    public static void getQualifiedRowsIndexTest() {
         String sqlInsert = "insert into testTable (name, age) values ('test', 1), ('test2', 2), ('test3', 3);";
         String sqlInsert1 = "insert into testTable values ('test', 1), ('test2', 2), ('test3', 3);";
         String sqlUpdate = "update testTable set name = 'test', age = 1 ,address = 'China' where address='aaa' and name = '1' and age = 10 ";

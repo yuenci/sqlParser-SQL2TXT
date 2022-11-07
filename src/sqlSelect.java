@@ -23,7 +23,15 @@ public class sqlSelect implements IQuery {
         String functionArgWithBrackets =colNames[0]; // avg(250)
         boolean isMaxMinCount = false;
         // if function select
+        boolean isDistinct = false;
+
+
         if(colNames.length == 1){
+            if(Parser.isDistinct(this.sql)){
+                isDistinct = true;
+                colNames[0] = colNames[0].substring(1,colNames[0].length()-1);
+            }
+
             String elements = colNames[0];
             if(Parser.isFunctionSelect(elements)){
                 if(Parser.isMaxMinCount(elements)){
@@ -32,14 +40,11 @@ public class sqlSelect implements IQuery {
                 }
             }
         }
-
 //        System.out.println( "colNames: " + Arrays.toString(colNames));
 
 
 
         int[] colIndexes = Parser.getColsIndexesListFromColNames(tableName, colNames);
-
-
 
 //        System.out.println( Arrays.toString(colNames));
 //        System.out.println( Arrays.toString(colIndexes));
@@ -66,10 +71,15 @@ public class sqlSelect implements IQuery {
             temp.get(0)[0] = String.valueOf(funcRes);
             return temp;
         }
+        if(isDistinct){
+            return Parser.getDistinctResult(result);
+        }
 
         if(Parser.isOrderSelect(sql)){
             return Parser.getOrderSelectResult(sql,result);
         }
+
+
 
         return result;
     }

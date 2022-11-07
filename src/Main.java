@@ -8,7 +8,8 @@ public class Main {
         //selectTest();
         //updateTest();
         //functionSelectTest();
-        orderTest() ;
+        //orderTest() ;
+        distinctTest();
     }
 
     public  static  void insertTest(){
@@ -65,6 +66,15 @@ public class Main {
         String sqlSelect1 = "select * from datetime where address = 'China' order by birthday asc";
         String sqlSelect2 = "select * from datetime where address = 'China' order by birthday desc";
         ArrayList<String[]> result = SQL.query(sqlSelect2);
+        for (String[] line:result
+        ) {
+            System.out.println(Arrays.toString(line));
+        }
+    }
+
+    public static void distinctTest(){
+        String sqlSelect1 = "select distinct(age) from datetime where address = 'China'";
+        ArrayList<String[]> result = SQL.query(sqlSelect1);
         for (String[] line:result
         ) {
             System.out.println(Arrays.toString(line));

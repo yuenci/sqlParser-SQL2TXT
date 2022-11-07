@@ -43,6 +43,7 @@ select min(age) from datetime where address = 'China'
 select count(age) from datetime where address = 'China'
 select avg(age) from datetime where address = 'China'
 select sum(age) from datetime where address = 'China'
+select distinct(age) from datetime where address = 'China'
 ```
 - Support the select function of order by
 ```sql
