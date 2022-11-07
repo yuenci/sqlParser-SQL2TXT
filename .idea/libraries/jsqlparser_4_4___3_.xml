@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jsqlparser-4.4  (3)">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/jsqlparser-4.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
