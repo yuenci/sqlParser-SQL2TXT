@@ -68,6 +68,7 @@ select * from datetime where address = 'China' order by birthday desc
 - [x] Date, DateTime dataType
 - [x] Max,Min,count,avg,sum
 - [x] Order
+- [ ] comppare dateTime,date
 - [ ] Group
 - [ ] Join
 
