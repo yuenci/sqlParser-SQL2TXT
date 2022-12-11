@@ -41,7 +41,7 @@ Example: ` insert into testtable values ('innis', 23,' China' )`.
 
 Example: `delete from testtable where address =' China' or (name =' inners3' and age = 27); `
 
-- Support the comparing of =, < >, >, > =, <, < =
+- Support the comparing of =, <>, >, > =, <, < =
 - Support the select function of count, sum, avg, max, min, and distinct
 ```sql
 select max(age) from datetime where address = 'China'
