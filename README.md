@@ -3,7 +3,7 @@
   <a href="#">
     <img src="src/example/SQLTOPNG.jpg" alt="Logo" height="180">
   </a>
-
+</div>
 
 
 
